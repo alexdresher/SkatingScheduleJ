@@ -48,6 +48,9 @@ public class ScheduleParser {
             String trimmed = line.trim();
             if (trimmed.isEmpty()) continue;
 
+            // Удаляем восклицательный знак из начала строки (❗️ или ❗)
+            trimmed = trimmed.replaceFirst("^❗️?", "").replaceFirst("^❗?", "");
+
             // Проверка на день недели
             java.util.regex.Pattern dayPattern = java.util.regex.Pattern.compile("^(Пн|Вт|Ср|Чт|Пт|Сб|Вс)");
             java.util.regex.Matcher dayMatcher = dayPattern.matcher(trimmed);
