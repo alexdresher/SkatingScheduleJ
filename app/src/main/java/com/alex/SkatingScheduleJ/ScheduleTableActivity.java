@@ -301,7 +301,7 @@ public class ScheduleTableActivity extends AppCompatActivity {
     // ==================== АДАПТЕР ====================
 
     private class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.ViewHolder> {
-        private List<ScheduleItem> items;
+        private final List<ScheduleItem> items;
 
         ScheduleAdapter(List<ScheduleItem> items) {
             this.items = items;
