@@ -7,7 +7,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.CalendarContract;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
@@ -23,8 +22,6 @@ import java.util.concurrent.Executors;
 
 public class ScheduleTableActivity extends AppCompatActivity {
 
-    private RecyclerView recyclerView;
-    private ScheduleAdapter adapter;
     private List<ScheduleItem> items = new ArrayList<>();
 
     private static final int PERMISSIONS_REQUEST_CODE = 100;
@@ -32,11 +29,11 @@ public class ScheduleTableActivity extends AppCompatActivity {
 
     // Список всех возможных занятий для удаления
     private final List<String> ALL_LESSONS = Arrays.asList(
-            "лёд", "лёд ст", "лёд мл",
-            "офп", "офп ст", "офп мл",
-            "сфп", "сфп ст", "сфп мл",
-            "хор", "хор ст", "хор мл",
-            "раст", "раст ст", "раст мл"
+            "Лёд", "Лёд ст", "Лёд мл",
+            "ОФП", "ОФП ст", "ОФП мл",
+            "СФП", "СФП ст", "СФП мл",
+            "Хор", "Хор ст", "Хор мл",
+            "Раст", "Раст ст", "Раст мл"
     );
 
     private final List<String> standardLessons;
@@ -57,13 +54,13 @@ public class ScheduleTableActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_schedule_table);
 
-        recyclerView = findViewById(R.id.recyclerView);
+        RecyclerView recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         items = (List<ScheduleItem>) getIntent().getSerializableExtra("schedule_items");
         if (items == null) items = new ArrayList<>();
 
-        adapter = new ScheduleAdapter(items);
+        ScheduleAdapter adapter = new ScheduleAdapter(items);
         recyclerView.setAdapter(adapter);
 
         Button addToCalendarButton = findViewById(R.id.addToCalendarButton);
@@ -164,8 +161,7 @@ public class ScheduleTableActivity extends AppCompatActivity {
             long endOfDay = startOfDay + (24 * 60 * 60 * 1000);
 
             //добавляем Юдино
-            List<String> All_lessons_with_Udino=new ArrayList<>();
-            All_lessons_with_Udino.addAll(ALL_LESSONS);
+            List<String> All_lessons_with_Udino = new ArrayList<>(ALL_LESSONS);
             for (String lesson : ALL_LESSONS)
             {
                 All_lessons_with_Udino.add(lesson + " Юдино");
@@ -179,7 +175,7 @@ public class ScheduleTableActivity extends AppCompatActivity {
             }
 
             String selection = CalendarContract.Events.CALENDAR_ID + " = ? AND " +
-                    "(" + titles.toString() + ") AND " +
+                    "(" + titles + ") AND " +
                     CalendarContract.Events.DTSTART + " >= ? AND " +
                     CalendarContract.Events.DTSTART + " < ?";
 
@@ -214,8 +210,6 @@ public class ScheduleTableActivity extends AppCompatActivity {
                 return;
             }
 
-            final long finalCalendarId = calendarId;
-
             // Группируем события по датам, чтобы удалить все занятия за день один раз
             Map<String, List<ScheduleItem>> itemsByDate = new HashMap<>();
             for (ScheduleItem item : selectedItems) {
@@ -223,7 +217,7 @@ public class ScheduleTableActivity extends AppCompatActivity {
                 if (!itemsByDate.containsKey(dateStr)) {
                     itemsByDate.put(dateStr, new ArrayList<>());
                 }
-                itemsByDate.get(dateStr).add(item);
+                Objects.requireNonNull(itemsByDate.get(dateStr)).add(item);
             }
 
             // Для каждой даты: сначала удаляем ВСЕ занятия, потом добавляем выбранные
@@ -232,7 +226,7 @@ public class ScheduleTableActivity extends AppCompatActivity {
                 List<ScheduleItem> dateItems = entry.getValue();
 
                 // 1. Удаляем ВСЕ возможные занятия за эту дату
-                deleteAllEventsForDate(dateStr, finalCalendarId);
+                deleteAllEventsForDate(dateStr, calendarId);
 
                 // 2. Добавляем выбранные занятия
                 for (ScheduleItem item : dateItems) {
@@ -251,7 +245,7 @@ public class ScheduleTableActivity extends AppCompatActivity {
                         }
 
                         ContentValues values = new ContentValues();
-                        values.put(CalendarContract.Events.CALENDAR_ID, finalCalendarId);
+                        values.put(CalendarContract.Events.CALENDAR_ID, calendarId);
                         values.put(CalendarContract.Events.TITLE, item.getSelectedLesson()+(item.isYudino()?" Юдино":""));
                         //values.put(CalendarContract.Events.DESCRIPTION, item.getDayAndNumber() + " " + item.getTimeRange());
                         values.put(CalendarContract.Events.DTSTART, startMillis);
@@ -263,12 +257,9 @@ public class ScheduleTableActivity extends AppCompatActivity {
 
                         String eventUriString = "content://com.android.calendar/events";
                         Uri uri = getContentResolver().insert(Uri.parse(eventUriString), values);
-                        long eventID = Long.parseLong(uri.getLastPathSegment());
-                        //Uri uri = getContentResolver().insert(CalendarContract.Events.CONTENT_URI, values);
 
-                        if (uri != null) {
-                            successCount++;
-                        } else {
+                        if (null != uri) successCount++;
+                        else {
                             failCount++;
                             errors.append(item.getSelectedLesson()).append(": ошибка добавления\n");
                         }
@@ -316,8 +307,9 @@ public class ScheduleTableActivity extends AppCompatActivity {
             this.items = items;
         }
 
+        @NonNull
         @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View view = getLayoutInflater().inflate(R.layout.item_schedule_row, parent, false);
             return new ViewHolder(view);
         }
@@ -333,13 +325,13 @@ public class ScheduleTableActivity extends AppCompatActivity {
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            private View daySeparator;
-            private TextView dateText;
-            private TextView dayOfWeekText;
-            private TextView timeText;
-            private Spinner lessonSpinner;
-            private CheckBox yudinoCheckbox;
-            private CheckBox importCheckbox;
+            private final View daySeparator;
+            private final TextView dateText;
+            private final TextView dayOfWeekText;
+            private final TextView timeText;
+            private final Spinner lessonSpinner;
+            private final CheckBox yudinoCheckbox;
+            private final CheckBox importCheckbox;
 
             ViewHolder(View itemView) {
                 super(itemView);
@@ -396,15 +388,11 @@ public class ScheduleTableActivity extends AppCompatActivity {
                 // Чекбокс "Юдино"
                 yudinoCheckbox.setOnCheckedChangeListener(null);
                 yudinoCheckbox.setChecked(item.isYudino());
-                yudinoCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                    item.setYudino(isChecked);
-                });
+                yudinoCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> item.setYudino(isChecked));
 
                 importCheckbox.setOnCheckedChangeListener(null);
                 importCheckbox.setChecked(item.isSelected());
-                importCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                    item.setSelected(isChecked);
-                });
+                importCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> item.setSelected(isChecked));
 
                 if (item.getTimeRange().equals("Выходной")) {
                     importCheckbox.setEnabled(false);

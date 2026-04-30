@@ -13,12 +13,15 @@ public class ScheduleParser {
         java.util.regex.Pattern datePattern = java.util.regex.Pattern.compile("(\\d{2})\\.(\\d{2})-(\\d{2})\\.(\\d{2})");
         java.util.regex.Matcher dateMatcher = datePattern.matcher(lines[0]);
 
-        int startDay = 27;
-        int startMonth = 4;
+        //Берём по умолчанию текущий понедельник
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+        int startDay = calendar.get(Calendar.DAY_OF_MONTH);
+        int startMonth = calendar.get(Calendar.MONTH) + 1; // Calendar.MONTH возвращает 0-11
 
         if (dateMatcher.find()) {
-            startDay = Integer.parseInt(dateMatcher.group(1));
-            startMonth = Integer.parseInt(dateMatcher.group(2));
+            startDay = Integer.parseInt(Objects.requireNonNull(dateMatcher.group(1)));
+            startMonth = Integer.parseInt(Objects.requireNonNull(dateMatcher.group(2)));
         }
 
         Map<String, Integer> dayOfWeekMap = new HashMap<>();
@@ -61,13 +64,10 @@ public class ScheduleParser {
                 currentDate = calculateDate(startDay, startMonth, currentDayOfWeek, dayOfWeekMap);
 
                 // СБРАСЫВАЕМ Юдино при начале нового дня
-                isYudinoActive = false;
 
                 // Проверяем, есть ли слово "Юдино" в строке дня
                 // Если да, то включаем Юдино для этой строки и последующих
-                if (trimmed.contains("Юдино")) {
-                    isYudinoActive = true;
-                }
+                isYudinoActive = trimmed.contains("Юдино");
 
                 if (isDayOff) {
                     items.add(new ScheduleItem(currentDate + " " + currentDayOfWeek, "Выходной", "", false));
@@ -79,8 +79,8 @@ public class ScheduleParser {
                 java.util.regex.Matcher timeMatcher = timePattern.matcher(trimmed);
 
                 if (timeMatcher.find() && !isDayOff) {
-                    String startTime = timeMatcher.group(1).replace(".", ":");
-                    String endTime = timeMatcher.group(2).replace(".", ":");
+                    String startTime = Objects.requireNonNull(timeMatcher.group(1)).replace(".", ":");
+                    String endTime = Objects.requireNonNull(timeMatcher.group(2)).replace(".", ":");
                     String timeRange = startTime + " - " + endTime;
                     int startHour = Integer.parseInt(startTime.split(":")[0]);
                     String lessonNames = timeMatcher.group(3);
@@ -103,8 +103,8 @@ public class ScheduleParser {
             java.util.regex.Matcher lessonMatcher = lessonPattern.matcher(trimmed);
 
             if (lessonMatcher.find() && !currentDayOfWeek.isEmpty() && !isDayOff) {
-                String startTime = lessonMatcher.group(1).replace(".", ":");
-                String endTime = lessonMatcher.group(2).replace(".", ":");
+                String startTime = Objects.requireNonNull(lessonMatcher.group(1)).replace(".", ":");
+                String endTime = Objects.requireNonNull(lessonMatcher.group(2)).replace(".", ":");
                 String timeRange = startTime + " - " + endTime;
                 int startHour = Integer.parseInt(startTime.split(":")[0]);
                 String lessonNames = lessonMatcher.group(3);
@@ -127,14 +127,14 @@ public class ScheduleParser {
                 String normalizedLesson = normalizeLessonName(trimmedLesson);
                 if (!normalizedLesson.isEmpty()) {
                     // ДЛЯ КАЖДОГО ЗАНЯТИЯ ВЫЧИСЛЯЕМ isSelected ИНДИВИДУАЛЬНО
-                    boolean isSelected = shouldBeSelectedByDefault(currentDayOfWeek, startHour, trimmedLesson, dayNumber);
+                    boolean isSelected = shouldBeSelectedByDefault(startHour, trimmedLesson, dayNumber);
                     items.add(new ScheduleItem(currentDate + " " + currentDayOfWeek, timeRange, normalizedLesson, isSelected, isYudinoActive));
                 }
             }
         } else {
             String normalizedLesson = normalizeLessonName(lessonNames.toLowerCase());
             if (!normalizedLesson.isEmpty()) {
-                boolean isSelected = shouldBeSelectedByDefault(currentDayOfWeek, startHour, lessonNames, dayNumber);
+                boolean isSelected = shouldBeSelectedByDefault(startHour, lessonNames, dayNumber);
                 items.add(new ScheduleItem(currentDate + " " + currentDayOfWeek, timeRange, normalizedLesson, isSelected, isYudinoActive));
             }
         }
@@ -148,61 +148,25 @@ public class ScheduleParser {
         }
 
         String returnName="";
-        if (lessonName.contains("лед") || lessonName.contains(("лёд"))) returnName="лёд";
-        if (lessonName.contains("раст")) returnName="раст";
-        if (lessonName.contains("хор")) returnName="хор";
-        if (lessonName.contains("офп")) returnName="офп";
-        if (lessonName.contains("сфп")) returnName="сфп";
-        if (lessonName.contains(" ст") || lessonName.contains(("ст "))) returnName+=" ст";
+        if (lessonName.contains("лед") || lessonName.contains(("лёд"))) returnName="Лёд";
+        if (lessonName.contains("раст")) returnName="Раст";
+        if (lessonName.contains("хор")) returnName="Хор";
+        if (lessonName.contains("офп")) returnName="ОФП";
+        if (lessonName.contains("сфп")) returnName="СФП";
+        if (lessonName.contains(" ст") || lessonName.startsWith(("ст "))) returnName+=" ст";
         if (lessonName.contains(" мл") || lessonName.contains(("мл "))) returnName+=" мл";
 
-
-        // Маппинг для стандартных названий
-        /*
-        Map<String, String> mapping = new HashMap<>();
-        mapping.put("лёд", "лёд");
-        mapping.put("лед", "лёд");
-        mapping.put("офп", "офп");
-        mapping.put("сфп", "сфп");
-        mapping.put("хор", "хор");
-        mapping.put("растяжка", "растяжка");
-        mapping.put("раст", "растяжка");
-        mapping.put("лёд ст", "лёд ст");
-        mapping.put("лед ст", "лёд ст");
-        mapping.put("ст лёд", "лёд ст");
-        mapping.put("офп ст", "офп ст");
-        mapping.put("ст офп", "офп ст");
-        mapping.put("сфп ст", "сфп ст");
-        mapping.put("ст сфп", "сфп ст");
-        mapping.put("хор ст", "хор ст");
-        mapping.put("ст хор", "хор ст");
-        mapping.put("растяжка ст", "растяжка ст");
-        mapping.put("ст раст", "растяжка ст");
-        mapping.put("раст ст", "растяжка ст");
-        mapping.put("лёд мл", "лёд мл");
-        mapping.put("офп мл", "офп мл");
-        mapping.put("сфп мл", "сфп мл");
-        mapping.put("хор мл", "хор мл");
-        mapping.put("растяжка мл", "растяжка мл");
-        mapping.put("мл раст", "растяжка мл");
-         */
-
-        //return mapping.getOrDefault(name, name);
         return returnName;
     }
 
-    private boolean shouldBeSelectedByDefault(String dayOfWeek, int startHour, String lessonName, Integer dayNumber) {
+    private boolean shouldBeSelectedByDefault(int startHour, String lessonName, Integer dayNumber) {
         // Будние дни до 12 - не выделяем
         if (dayNumber != null && dayNumber >= 1 && dayNumber <= 5 && startHour < 12) {
             return false;
         }
 
         // Если есть "мл" - не выделяем
-        if (lessonName.contains("мл")) {
-            return false;
-        }
-
-        return true;
+        return !lessonName.contains("мл");
     }
 
     private String calculateDate(int startDay, int startMonth, String dayOfWeek, Map<String, Integer> dayOfWeekMap) {
