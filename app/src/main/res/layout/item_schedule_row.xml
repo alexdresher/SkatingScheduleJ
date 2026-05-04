@@ -57,7 +57,8 @@
             android:id="@+id/lessonSpinner"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="5" />
+            android:layout_weight="5"
+            android:background="@android:color/transparent" />
 
         <CheckBox
             android:id="@+id/yudinoCheckbox"

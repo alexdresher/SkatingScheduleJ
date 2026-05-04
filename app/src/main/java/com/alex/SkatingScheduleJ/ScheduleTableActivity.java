@@ -364,11 +364,38 @@ public class ScheduleTableActivity extends AppCompatActivity {
                 dayOfWeekText.setText(dayOfWeekStr);
                 timeText.setText(item.getTimeRange());
 
-                ArrayAdapter<String> adapterSpinner = new ArrayAdapter<>(
+                // СОЗДАЕМ КАСТОМНЫЙ АДАПТЕР ДЛЯ СПИННЕРА С УЧЁТОМ СОСТОЯНИЯ ВЫДЕЛЕНИЯ
+                boolean isSelected = item.isSelected();
+                int textColor = isSelected ?
+                        ContextCompat.getColor(itemView.getContext(), R.color.time_color) :
+                        ContextCompat.getColor(itemView.getContext(), R.color.row_not_selected_text);
+
+                ArrayAdapter<String> adapterSpinner = new ArrayAdapter<String>(
                         itemView.getContext(),
                         android.R.layout.simple_spinner_item,
                         standardLessons
-                );
+                ) {
+                    @NonNull
+                    @Override
+                    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
+                        View view = super.getView(position, convertView, parent);
+                        if (view instanceof TextView) {
+                            TextView textView = (TextView) view;
+                            textView.setTextColor(textColor);
+                        }
+                        return view;
+                    }
+
+                    @Override
+                    public View getDropDownView(int position, View convertView, @NonNull ViewGroup parent) {
+                        View view = super.getDropDownView(position, convertView, parent);
+                        if (view instanceof TextView) {
+                            ((TextView) view).setTextColor(Color.BLACK);
+                        }
+                        return view;
+                    }
+                };
+
                 adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 lessonSpinner.setAdapter(adapterSpinner);
 
@@ -377,10 +404,15 @@ public class ScheduleTableActivity extends AppCompatActivity {
                     lessonSpinner.setSelection(selectedIndex);
                 }
 
+                // Обработчик выбора в спиннере
                 lessonSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
                         item.setSelectedLesson(standardLessons.get(pos));
+                        // Обновляем цвет только что выбранного элемента
+                        if (view instanceof TextView && !item.isSelected()) {
+                            ((TextView) view).setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.row_not_selected_text));
+                        }
                     }
                     @Override
                     public void onNothingSelected(AdapterView<?> parent) {}
