@@ -470,17 +470,8 @@ public class ScheduleTableActivity extends AppCompatActivity {
                 importCheckbox.setChecked(item.isSelected());
                 importCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
                     item.setSelected(isChecked);
-                    // Обновляем цвет строки
-                    if (isChecked) {
-                    itemView.setBackgroundColor(ContextCompat.getColor(itemView.getContext(), R.color.row_selected));
-                    dateText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.date_day_color));
-                    dayOfWeekText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.date_day_color));
-                    timeText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.time_color));
-                    } else {
-                    itemView.setBackgroundColor(ContextCompat.getColor(itemView.getContext(), R.color.row_not_selected));
-                    dateText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.row_not_selected_text));
-                    dayOfWeekText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.row_not_selected_text));
-                    timeText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.row_not_selected_text));}
+                    // Обновляем ВСЮ строку целиком
+                    notifyItemChanged(position);
                     });
 
                 if (item.getTimeRange().equals("Выходной")) {
