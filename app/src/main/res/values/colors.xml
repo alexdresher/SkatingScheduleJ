@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="purple_500">#6200EE</color>
+    <color name="purple_700">#3700B3</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
+    <!-- Цвет для даты и дня недели -->
+    <color name="date_day_color">#1565C0</color>
+
+    <!-- Цвет для времени -->
+    <color name="time_color">#000000</color>
+
+    <!-- Цвета для фона строк -->
+    <color name="row_selected">#FFFFFF</color>
+    <color name="row_not_selected">#E0E0E0</color>
+    <color name="row_not_selected_text">#9E9E9E</color>
 </resources>

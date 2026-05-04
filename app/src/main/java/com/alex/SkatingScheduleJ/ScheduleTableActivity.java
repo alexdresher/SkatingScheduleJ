@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.ContentValues;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.CalendarContract;
@@ -385,6 +386,35 @@ public class ScheduleTableActivity extends AppCompatActivity {
                     public void onNothingSelected(AdapterView<?> parent) {}
                 });
 
+                // НАСТРОЙКА ЦВЕТА В ЗАВИСИМОСТИ ОТ СОСТОЯНИЯ ЧЕКБОКСА
+                if (item.isSelected()) {
+                    // Выделенная строка - нормальные цвета
+                    itemView.setBackgroundColor(ContextCompat.getColor(itemView.getContext(), R.color.row_selected));
+                    dateText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.date_day_color));
+                    dayOfWeekText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.date_day_color));
+                    timeText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.time_color));
+                    // Спиннер - нормальный вид (прозрачный фон)
+                    lessonSpinner.setBackgroundColor(Color.TRANSPARENT);
+                    // Получаем TextView внутри спиннера и меняем его цвет
+                    if (lessonSpinner.getSelectedView() != null) {
+                        TextView spinnerText = (TextView) lessonSpinner.getSelectedView();
+                        spinnerText.setTextColor(Color.BLACK);
+                    }
+                } else {
+                    // Невыделенная строка - тусклые серые цвета
+                    itemView.setBackgroundColor(ContextCompat.getColor(itemView.getContext(), R.color.row_not_selected));
+                    dateText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.row_not_selected_text));
+                    dayOfWeekText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.row_not_selected_text));
+                    timeText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.row_not_selected_text));
+                    // Спиннер - серый цвет
+                    lessonSpinner.setBackgroundColor(ContextCompat.getColor(itemView.getContext(), R.color.row_not_selected));
+                    // Меняем цвет текста в спиннере
+                    if (lessonSpinner.getSelectedView() != null) {
+                        TextView spinnerText = (TextView) lessonSpinner.getSelectedView();
+                        spinnerText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.row_not_selected_text));
+                    }
+                }
+
                 // Чекбокс "Юдино"
                 yudinoCheckbox.setOnCheckedChangeListener(null);
                 yudinoCheckbox.setChecked(item.isYudino());
@@ -392,7 +422,20 @@ public class ScheduleTableActivity extends AppCompatActivity {
 
                 importCheckbox.setOnCheckedChangeListener(null);
                 importCheckbox.setChecked(item.isSelected());
-                importCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> item.setSelected(isChecked));
+                importCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                    item.setSelected(isChecked);
+                    // Обновляем цвет строки
+                    if (isChecked) {
+                    itemView.setBackgroundColor(ContextCompat.getColor(itemView.getContext(), R.color.row_selected));
+                    dateText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.date_day_color));
+                    dayOfWeekText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.date_day_color));
+                    timeText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.time_color));
+                    } else {
+                    itemView.setBackgroundColor(ContextCompat.getColor(itemView.getContext(), R.color.row_not_selected));
+                    dateText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.row_not_selected_text));
+                    dayOfWeekText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.row_not_selected_text));
+                    timeText.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.row_not_selected_text));}
+                    });
 
                 if (item.getTimeRange().equals("Выходной")) {
                     importCheckbox.setEnabled(false);
