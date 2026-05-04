@@ -3,6 +3,7 @@ package com.alex.SkatingScheduleJ;
 import android.Manifest;
 import android.content.ContentValues;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
@@ -450,6 +451,19 @@ public class ScheduleTableActivity extends AppCompatActivity {
                 // Чекбокс "Юдино"
                 yudinoCheckbox.setOnCheckedChangeListener(null);
                 yudinoCheckbox.setChecked(item.isYudino());
+                // Создаём цветной фильтр для чекбокса
+                if (item.isSelected()) {
+                    // Выделенная строка - нормальный чекбокс
+                    yudinoCheckbox.setAlpha(1.0f);
+                    // Сбрасываем цветовой фильтр
+                    yudinoCheckbox.setButtonTintList(null);
+                } else {
+                    // Невыделенная строка - серый чекбокс
+                    yudinoCheckbox.setAlpha(0.5f);
+                    // Устанавливаем серый цвет для чекбокса
+                    int grayColor = ContextCompat.getColor(itemView.getContext(), R.color.row_not_selected_text);
+                    yudinoCheckbox.setButtonTintList(ColorStateList.valueOf(grayColor));
+                }
                 yudinoCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> item.setYudino(isChecked));
 
                 importCheckbox.setOnCheckedChangeListener(null);
