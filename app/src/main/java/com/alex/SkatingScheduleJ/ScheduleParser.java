@@ -10,7 +10,7 @@ public class ScheduleParser {
         String[] lines = inputText.trim().split("\n");
 
         // Извлекаем диапазон дат
-        java.util.regex.Pattern datePattern = java.util.regex.Pattern.compile("(\\d{2})\\.(\\d{2})-(\\d{2})\\.(\\d{2})");
+        java.util.regex.Pattern datePattern = java.util.regex.Pattern.compile("(\\d{1,2})\\.(\\d{1,2})-(\\d{1,2})\\.(\\d{1,2})");
         java.util.regex.Matcher dateMatcher = datePattern.matcher(lines[0]);
 
         //Берём по умолчанию текущий понедельник
