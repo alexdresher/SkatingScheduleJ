@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SkatingSscheduleJ"
+rootProject.name = "SkatingScheduleJ"
 include(":app")
