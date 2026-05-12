@@ -60,14 +60,14 @@ public class ScheduleParser {
 
             if (dayMatcher.find()) {
                 currentDayOfWeek = dayMatcher.group();
-                isDayOff = trimmed.contains("Выходной");
+                isDayOff = trimmed.toLowerCase().contains("выходной");
                 currentDate = calculateDate(startDay, startMonth, currentDayOfWeek, dayOfWeekMap);
 
                 // СБРАСЫВАЕМ Юдино при начале нового дня
 
                 // Проверяем, есть ли слово "Юдино" в строке дня
                 // Если да, то включаем Юдино для этой строки и последующих
-                isYudinoActive = trimmed.contains("Юдино");
+                isYudinoActive = trimmed.toLowerCase().contains("юдино");
 
                 if (isDayOff) {
                     items.add(new ScheduleItem(currentDate + " " + currentDayOfWeek, "Выходной", "", false));
@@ -90,12 +90,12 @@ public class ScheduleParser {
             }
 
             // Проверяем, есть ли Юдино в строке
-            boolean lineHasYudino = trimmed.startsWith("Юдино") || trimmed.contains("Юдино");
+            boolean lineHasYudino = trimmed.toLowerCase().contains("юдино");
 
             if (lineHasYudino) {
                 isYudinoActive = true;
                 // Удаляем слово "Юдино" из строки
-                trimmed = trimmed.replaceFirst("Юдино", "").trim();
+                trimmed = trimmed.toLowerCase().replaceFirst("юдино", "").trim();
             }
 
             // Обработка строк с занятиями
