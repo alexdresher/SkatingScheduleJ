@@ -55,11 +55,12 @@ public class ScheduleParser {
             trimmed = trimmed.replaceFirst("^❗️?", "").replaceFirst("^❗?", "");
 
             // Проверка на день недели
-            java.util.regex.Pattern dayPattern = java.util.regex.Pattern.compile("^(Пн|Вт|Ср|Чт|Пт|Сб|Вс)");
+            java.util.regex.Pattern dayPattern = java.util.regex.Pattern.compile("^(Пн|Вт|Ср|Чт|Пт|Сб|Вс)\\s*(.*)");
             java.util.regex.Matcher dayMatcher = dayPattern.matcher(trimmed);
 
             if (dayMatcher.find()) {
-                currentDayOfWeek = dayMatcher.group();
+                currentDayOfWeek = dayMatcher.group(1);
+                String restOfLine = dayMatcher.group(2); // то, что идёт после дня недели
                 isDayOff = trimmed.toLowerCase().contains("выходной");
                 currentDate = calculateDate(startDay, startMonth, currentDayOfWeek, dayOfWeekMap);
 
@@ -67,7 +68,7 @@ public class ScheduleParser {
 
                 // Проверяем, есть ли слово "Юдино" в строке дня
                 // Если да, то включаем Юдино для этой строки и последующих
-                isYudinoActive = trimmed.toLowerCase().contains("юдино");
+                isYudinoActive = restOfLine.toLowerCase().contains("юдино");
 
                 if (isDayOff) {
                     items.add(new ScheduleItem(currentDate + " " + currentDayOfWeek, "Выходной", "", false));
@@ -75,8 +76,8 @@ public class ScheduleParser {
 
                 // Проверяем занятие в той же строке
                 java.util.regex.Pattern timePattern = java.util.regex.Pattern.compile(
-                        currentDayOfWeek + "\\s+(\\d{1,2}\\.\\d{2})-(\\d{1,2}\\.\\d{2})\\s+(.+)");
-                java.util.regex.Matcher timeMatcher = timePattern.matcher(trimmed);
+                        "(\\d{1,2}[.:]\\d{2})-(\\d{1,2}[.:]\\d{2})\\s+(.+)");
+                java.util.regex.Matcher timeMatcher = timePattern.matcher(restOfLine);
 
                 if (timeMatcher.find() && !isDayOff) {
                     String startTime = Objects.requireNonNull(timeMatcher.group(1)).replace(".", ":");
