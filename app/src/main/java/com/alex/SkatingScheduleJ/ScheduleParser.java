@@ -154,8 +154,13 @@ public class ScheduleParser {
         if (lessonName.contains("хор")) returnName="Хор";
         if (lessonName.contains("офп")) returnName="ОФП";
         if (lessonName.contains("сфп")) returnName="СФП";
-        if (lessonName.contains(" ст") || lessonName.startsWith(("ст "))) returnName+=" ст";
-        if (lessonName.contains(" мл") || lessonName.contains(("мл "))) returnName+=" мл";
+        if (returnName.isEmpty()) {
+            returnName = lessonName;
+        }
+        else {
+            if (lessonName.contains(" ст") || lessonName.startsWith(("ст "))) returnName += " ст";
+            if (lessonName.contains(" мл") || lessonName.contains(("мл "))) returnName += " мл";
+        }
 
         return returnName;
     }
