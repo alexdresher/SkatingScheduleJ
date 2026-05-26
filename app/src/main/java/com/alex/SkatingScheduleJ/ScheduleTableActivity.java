@@ -400,9 +400,19 @@ public class ScheduleTableActivity extends AppCompatActivity {
                 adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 lessonSpinner.setAdapter(adapterSpinner);
 
-                int selectedIndex = standardLessons.indexOf(item.getSelectedLesson());
+                // Вместо прямого поиска индекса, проверяем и добавляем если нужно
+                String selectedLesson = item.getSelectedLesson();
+                int selectedIndex = standardLessons.indexOf(selectedLesson);
+
                 if (selectedIndex >= 0) {
                     lessonSpinner.setSelection(selectedIndex);
+                } else if (selectedLesson != null && !selectedLesson.isEmpty()) {
+                    // Если значения нет в списке, добавляем его
+                    standardLessons.add(selectedLesson);
+                    // Уведомляем адаптер об изменениях
+                    adapterSpinner.notifyDataSetChanged();
+                    // Устанавливаем новый индекс
+                    lessonSpinner.setSelection(standardLessons.indexOf(selectedLesson));
                 }
 
                 // Обработчик выбора в спиннере
