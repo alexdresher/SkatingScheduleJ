@@ -65,6 +65,21 @@ public class ScheduleTableActivity extends AppCompatActivity {
         ScheduleAdapter adapter = new ScheduleAdapter(items);
         recyclerView.setAdapter(adapter);
 
+        // ============ ОБРАБОТЧИК ДЛЯ ЗАГОЛОВКА "ЮДИНО" ============
+        // Находим TextView "Юдино" напрямую по ID
+        TextView headerYudino = findViewById(R.id.headerYudino);
+        if (headerYudino != null) {
+            headerYudino.setOnClickListener(v -> selectAllWithYudino(adapter));
+            // Делаем кликабельным и добавляем визуальный эффект
+            headerYudino.setClickable(true);
+            headerYudino.setFocusable(true);
+            // Правильный способ установить selectableItemBackground
+                headerYudino.setBackgroundResource(android.R.drawable.list_selector_background);
+        } else {
+            // Если не нашли - пробуем альтернативный способ
+            findHeaderYudinoRecursive((ViewGroup) findViewById(android.R.id.content), adapter);
+        }
+
         Button addToCalendarButton = findViewById(R.id.addToCalendarButton);
         addToCalendarButton.setOnClickListener(v -> {
             List<ScheduleItem> selectedItems = new ArrayList<>();
@@ -79,6 +94,48 @@ public class ScheduleTableActivity extends AppCompatActivity {
                 checkPermissionsAndAdd(selectedItems);
             }
         });
+    }
+
+    // ============ МЕТОД ДЛЯ ВЫДЕЛЕНИЯ ВСЕХ С "ЮДИНО" ============
+    private void selectAllWithYudino(ScheduleAdapter adapter) {
+        boolean anyChecked = false;
+        int count = 0;
+
+        for (int i = 0; i < items.size(); i++) {
+            ScheduleItem item = items.get(i);
+            // Проверяем, что чекбокс "Юдино" включен и это не выходной
+            if (item.isSelected() && !item.getTimeRange().equals("Выходной")) {
+                item.setYudino(true);
+                anyChecked = true;
+                count++;
+            }
+        }
+
+        if (anyChecked) {
+            adapter.notifyDataSetChanged();
+            Toast.makeText(this, "Выделено " + count + " занятий с отметкой 'Юдино'", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Нет активных чекбоксов 'Юдино'", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // ============ АЛЬТЕРНАТИВНЫЙ ПОИСК (если findViewById не сработал) ============
+    private void findHeaderYudinoRecursive(ViewGroup parent, ScheduleAdapter adapter) {
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            View child = parent.getChildAt(i);
+            if (child instanceof TextView) {
+                TextView textView = (TextView) child;
+                if ("Юдино".equals(textView.getText().toString())) {
+                    textView.setOnClickListener(v -> selectAllWithYudino(adapter));
+                    textView.setClickable(true);
+                    textView.setFocusable(true);
+                    textView.setBackgroundResource(android.R.attr.selectableItemBackground);
+                    return;
+                }
+            } else if (child instanceof ViewGroup) {
+                findHeaderYudinoRecursive((ViewGroup) child, adapter);
+            }
+        }
     }
 
     private void checkPermissionsAndAdd(List<ScheduleItem> selectedItems) {
