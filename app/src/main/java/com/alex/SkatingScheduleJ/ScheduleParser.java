@@ -2,6 +2,8 @@ package com.alex.SkatingScheduleJ;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ScheduleParser {
 
@@ -10,8 +12,32 @@ public class ScheduleParser {
         String[] lines = inputText.trim().split("\n");
 
         // Извлекаем диапазон дат
-        java.util.regex.Pattern datePattern = java.util.regex.Pattern.compile("(\\d{1,2})\\.(\\d{1,2})-(\\d{1,2})\\.(\\d{1,2})");
-        java.util.regex.Matcher dateMatcher = datePattern.matcher(lines[0]);
+        // Возможные форматы:
+        // "Расписание 6-10 июля"
+        // "Расписание с 1 по 3 июля"
+        // "Расписание 01.07-03.07"
+
+        Pattern[] patterns = {
+                // 01.07-03.07
+                Pattern.compile("(\\d{1,2})\\.(\\d{1,2})-(\\d{1,2})\\.(\\d{1,2})"),
+
+                // 6-10 июля
+                Pattern.compile("(\\d{1,2})-(\\d{1,2})\\s+([а-яА-ЯёЁ]+)"),
+
+                // с 1 по 3 июля
+                Pattern.compile("с\\s+(\\d{1,2})\\s+по\\s+(\\d{1,2})\\s+([а-яА-ЯёЁ]+)")
+        };
+
+        Matcher dateMatcher = null;
+        int matchedPattern = -1;
+
+        for (int i = 0; i < patterns.length; i++) {
+            dateMatcher = patterns[i].matcher(lines[0]);
+            if (dateMatcher.find()) {
+                matchedPattern = i;
+                break;
+            }
+        }
 
         //Берём по умолчанию текущий понедельник
         Calendar calendar = Calendar.getInstance();
@@ -19,9 +45,25 @@ public class ScheduleParser {
         int startDay = calendar.get(Calendar.DAY_OF_MONTH);
         int startMonth = calendar.get(Calendar.MONTH) + 1; // Calendar.MONTH возвращает 0-11
 
-        if (dateMatcher.find()) {
-            startDay = Integer.parseInt(Objects.requireNonNull(dateMatcher.group(1)));
-            startMonth = Integer.parseInt(Objects.requireNonNull(dateMatcher.group(2)));
+        // Если нашли дату — разбираем
+        if (matchedPattern != -1) {
+
+            switch (matchedPattern) {
+
+                case 0:
+                    // 01.07-03.07
+                    startDay = Integer.parseInt(dateMatcher.group(1));
+                    startMonth = Integer.parseInt(dateMatcher.group(2));
+                    break;
+
+                case 1:
+                case 2:
+                    // 6-10 июля
+                    // с 1 по 3 июля
+                    startDay = Integer.parseInt(dateMatcher.group(1));
+                    startMonth = monthToNumber(dateMatcher.group(3));
+                    break;
+            }
         }
 
         Map<String, Integer> dayOfWeekMap = new HashMap<>();
@@ -114,6 +156,26 @@ public class ScheduleParser {
         }
 
         return items;
+    }
+
+    private int monthToNumber(String month) {
+        return switch (month.toLowerCase()) {
+            case "января" -> 1;
+            case "февраля" -> 2;
+            case "марта" -> 3;
+            case "апреля" -> 4;
+            case "мая" -> 5;
+            case "июня" -> 6;
+            case "июля" -> 7;
+            case "августа" -> 8;
+            case "сентября" -> 9;
+            case "октября" -> 10;
+            case "ноября" -> 11;
+            case "декабря" -> 12;
+            default -> throw new IllegalArgumentException(
+                    "Неизвестный месяц: " + month
+            );
+        };
     }
 
     private void addLessonItemsSeparately(List<ScheduleItem> items, String currentDate, String currentDayOfWeek,
