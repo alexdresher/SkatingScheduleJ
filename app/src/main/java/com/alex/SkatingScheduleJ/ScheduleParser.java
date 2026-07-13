@@ -118,7 +118,7 @@ public class ScheduleParser {
 
                 // Проверяем занятие в той же строке
                 java.util.regex.Pattern timePattern = java.util.regex.Pattern.compile(
-                        "(\\d{1,2}[.:]\\d{2})-(\\d{1,2}[.:]\\d{2})\\s+(.+)");
+                        "(\\d{1,2}[.:]\\d{2})[-–—](\\d{1,2}[.:]\\d{2})\\s+(.+)");
                 java.util.regex.Matcher timeMatcher = timePattern.matcher(restOfLine);
 
                 if (timeMatcher.find() && !isDayOff) {

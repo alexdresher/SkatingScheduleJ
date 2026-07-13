@@ -165,4 +165,21 @@ public class ScheduleParserTest {
         assertEquals("тесты", items.get(4).getSelectedLesson());
         assertFalse(items.get(4).isSelected());
     }
+    @Test
+    public void testErrorLesson() {
+        String input = "Расписание 13.07-19.07:\n" +
+                "Вс 8.30–9.30 ст офп\n" +//пропал
+                "9.45-10.45 ст лед\n" +
+                "10.45-11.45 мл лед\n" +
+                "12.00-13.00 мл раст\n";
+
+        List<ScheduleItem> items = parser.parse(input);
+
+        assertEquals("ОФП ст", items.get(0).getSelectedLesson());
+        assertTrue(items.get(0).isSelected());
+        assertEquals("Лёд ст", items.get(1).getSelectedLesson());
+        assertTrue(items.get(1).isSelected());
+        assertFalse(items.get(2).isSelected());
+        assertFalse(items.get(3).isSelected());
+    }
 }
