@@ -7,8 +7,10 @@ import java.util.regex.Pattern;
 
 public class ScheduleParser {
 
-    public List<ScheduleItem> parse(String inputText) {
+    public List<ScheduleItem> parse(String inputText, boolean afterTimeEnabled, int afterHour) {
         List<ScheduleItem> items = new ArrayList<>();
+        boolean parserAfterTimeEnabled=afterTimeEnabled;
+        int parserAfterHour=afterHour;
         String[] lines = inputText.trim().split("\n");
 
         // Извлекаем диапазон дат
@@ -127,7 +129,7 @@ public class ScheduleParser {
                     String timeRange = startTime + " - " + endTime;
                     int startHour = Integer.parseInt(startTime.split(":")[0]);
                     String lessonNames = timeMatcher.group(3);
-                    addLessonItemsSeparately(items, currentDate, currentDayOfWeek, timeRange, lessonNames, startHour, dayNumbers.get(currentDayOfWeek), isYudinoActive);
+                    addLessonItemsSeparately(items, currentDate, currentDayOfWeek, timeRange, lessonNames, startHour, dayNumbers.get(currentDayOfWeek), isYudinoActive, parserAfterTimeEnabled, parserAfterHour);
                 }
                 continue;
             }
@@ -151,7 +153,7 @@ public class ScheduleParser {
                 String timeRange = startTime + " - " + endTime;
                 int startHour = Integer.parseInt(startTime.split(":")[0]);
                 String lessonNames = lessonMatcher.group(3);
-                addLessonItemsSeparately(items, currentDate, currentDayOfWeek, timeRange, lessonNames, startHour, dayNumbers.get(currentDayOfWeek), isYudinoActive);
+                addLessonItemsSeparately(items, currentDate, currentDayOfWeek, timeRange, lessonNames, startHour, dayNumbers.get(currentDayOfWeek), isYudinoActive, parserAfterTimeEnabled, parserAfterHour);
             }
         }
 
@@ -179,7 +181,7 @@ public class ScheduleParser {
     }
 
     private void addLessonItemsSeparately(List<ScheduleItem> items, String currentDate, String currentDayOfWeek,
-                                          String timeRange, String lessonNames, int startHour, Integer dayNumber, boolean isYudinoActive) {
+                                          String timeRange, String lessonNames, int startHour, Integer dayNumber, boolean isYudinoActive, boolean afterTimeEnabled, int afterHour) {
         if (dayNumber == null) dayNumber = 0;
 
         if (lessonNames.contains(",")) {
@@ -190,14 +192,14 @@ public class ScheduleParser {
                 String normalizedLesson = normalizeLessonName(trimmedLesson);
                 if (!normalizedLesson.isEmpty()) {
                     // ДЛЯ КАЖДОГО ЗАНЯТИЯ ВЫЧИСЛЯЕМ isSelected ИНДИВИДУАЛЬНО
-                    boolean isSelected = shouldBeSelectedByDefault(startHour, trimmedLesson, dayNumber);
+                    boolean isSelected = shouldBeSelectedByDefault(startHour, trimmedLesson, dayNumber, afterTimeEnabled, afterHour);
                     items.add(new ScheduleItem(currentDate + " " + currentDayOfWeek, timeRange, normalizedLesson, isSelected, isYudinoActive));
                 }
             }
         } else {
             String normalizedLesson = normalizeLessonName(lessonNames.toLowerCase());
             if (!normalizedLesson.isEmpty()) {
-                boolean isSelected = shouldBeSelectedByDefault(startHour, lessonNames, dayNumber);
+                boolean isSelected = shouldBeSelectedByDefault(startHour, lessonNames, dayNumber, afterTimeEnabled, afterHour);
                 items.add(new ScheduleItem(currentDate + " " + currentDayOfWeek, timeRange, normalizedLesson, isSelected, isYudinoActive));
             }
         }
@@ -227,9 +229,10 @@ public class ScheduleParser {
         return returnName;
     }
 
-    private boolean shouldBeSelectedByDefault(int startHour, String lessonName, Integer dayNumber) {
-        // Будние дни до 12 - не выделяем
-        if (dayNumber != null && dayNumber >= 1 && dayNumber <= 5 && startHour < 12) {
+    private boolean shouldBeSelectedByDefault(int startHour, String lessonName, Integer dayNumber,
+                                              boolean afterTimeEnabled, int afterHour) {
+        // Будние дни до порога времени - не выделяем (только если фильтр включен)
+        if (afterTimeEnabled && dayNumber != null && dayNumber >= 1 && dayNumber <= 5 && startHour < afterHour) {
             return false;
         }
 

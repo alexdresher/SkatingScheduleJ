@@ -4,7 +4,31 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
 
+        <Switch
+            android:id="@+id/afterTimeSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="Занятия после" />
+
+        <EditText
+            android:id="@+id/afterTimeInput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:gravity="center"
+            android:inputType="time"
+            android:text="12" />
+
+    </LinearLayout>
     <Button
         android:id="@+id/processButton"
         android:layout_width="match_parent"
