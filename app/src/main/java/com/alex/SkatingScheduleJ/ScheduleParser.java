@@ -184,9 +184,21 @@ public class ScheduleParser {
 
         if (lessonNames.contains(",")) {
             // Разделяем занятия по запятым
+            // Если это одно занятие, то дублируем
             String[] lessons = lessonNames.split(",");
+            String currentBasePrefix = "";
             for (String lesson : lessons) {
                 String trimmedLesson = lesson.trim().toLowerCase();
+                int spaceIndex = trimmedLesson.indexOf(' ');
+                if (spaceIndex != -1) {
+                    // Если в строке есть пробел (например, "лед ст"),
+                    // запоминаем первое слово как базу ("лед")
+                    currentBasePrefix = trimmedLesson.substring(0, spaceIndex);
+                } else if (!currentBasePrefix.isEmpty()) {
+                    // Если пробела нет (одиночное слово, например, "мл"),
+                    // дописываем спереди ранее сохраненную базу -> "лед мл"
+                    trimmedLesson = currentBasePrefix + " " + trimmedLesson;
+                }
                 String normalizedLesson = normalizeLessonName(trimmedLesson);
                 if (!normalizedLesson.isEmpty()) {
                     // ДЛЯ КАЖДОГО ЗАНЯТИЯ ВЫЧИСЛЯЕМ isSelected ИНДИВИДУАЛЬНО
