@@ -27,7 +27,7 @@ public class ScheduleParserTest {
                 "      15.45-16.45 лёд\n" +
                 "      17.00-18.00 ст хор";
 
-        List<ScheduleItem> items = parser.parse(input);
+        List<ScheduleItem> items = parser.parse(input,false,12);
 
         assertNotNull(items);
         assertEquals(4, items.size());
@@ -44,7 +44,7 @@ public class ScheduleParserTest {
                 "Вт 15.45-16.45 хор мл, СФП ст\n" +
                 "      16.45-17.45 хор ст, офп мл";
 
-        List<ScheduleItem> items = parser.parse(input);
+        List<ScheduleItem> items = parser.parse(input,false,12);
 
         assertNotNull(items);
         assertEquals(4, items.size());
@@ -64,7 +64,7 @@ public class ScheduleParserTest {
                 "       17.15-18.15 СФП мл, раст ст\n" +
                 "       18.30-19.30 лёд";
 
-        List<ScheduleItem> items = parser.parse(input);
+        List<ScheduleItem> items = parser.parse(input,false,12);
 
         assertNotNull(items);
 
@@ -84,7 +84,7 @@ public class ScheduleParserTest {
                 "      15.30-16.30 лёд\n" +
                 "❗️Пт 12.30-13.30 хор мл";
 
-        List<ScheduleItem> items = parser.parse(input);
+        List<ScheduleItem> items = parser.parse(input,false,12);
 
         assertNotNull(items);
         assertEquals(3, items.size());
@@ -97,7 +97,7 @@ public class ScheduleParserTest {
         String input = "Расписание 27.04-03.05:\n" +
                 "Ср Выходной. Тесты";
 
-        List<ScheduleItem> items = parser.parse(input);
+        List<ScheduleItem> items = parser.parse(input,false,12);
 
         assertNotNull(items);
         assertEquals(1, items.size());
@@ -110,7 +110,7 @@ public class ScheduleParserTest {
                 "Пн 8.15-9.15 лёд\n" +
                 "      14.30-15.30 мл ОФП";
 
-        List<ScheduleItem> items = parser.parse(input);
+        List<ScheduleItem> items = parser.parse(input,false,12);
 
         assertEquals("8:15 - 9:15", items.get(0).getTimeRange());
         assertEquals("14:30 - 15:30", items.get(1).getTimeRange());
@@ -123,7 +123,7 @@ public class ScheduleParserTest {
                 "      11.15-12.15 мл лёд\n" +
                 "      12.30-13.30 раст ст";
 
-        List<ScheduleItem> items = parser.parse(input);
+        List<ScheduleItem> items = parser.parse(input,false,12);
 
         assertEquals("Хор ст", items.get(0).getSelectedLesson());
         assertEquals("Лёд мл", items.get(1).getSelectedLesson());
@@ -138,7 +138,7 @@ public class ScheduleParserTest {
                 "Пн 15.45-16.45 офп мл\n" +       // есть "мл" → false
                 "Сб 9.00-10.00 лёд ст\n";        // выходной → true
 
-        List<ScheduleItem> items = parser.parse(input);
+        List<ScheduleItem> items = parser.parse(input,true,12);
 
         assertFalse(items.get(0).isSelected());
         assertTrue(items.get(1).isSelected());
@@ -156,7 +156,7 @@ public class ScheduleParserTest {
                 "10.45-11.45 лёд\n" +
                 "12.00-13.00 откр урок ст\n";
 
-        List<ScheduleItem> items = parser.parse(input);
+        List<ScheduleItem> items = parser.parse(input,true,12);
 
         assertEquals("откр урок мл", items.get(1).getSelectedLesson());
         assertFalse(items.get(1).isSelected());
@@ -173,7 +173,7 @@ public class ScheduleParserTest {
                 "10.45-11.45 мл лед\n" +
                 "12.00-13.00 мл раст\n";
 
-        List<ScheduleItem> items = parser.parse(input);
+        List<ScheduleItem> items = parser.parse(input,false,12);
 
         assertEquals("ОФП ст", items.get(0).getSelectedLesson());
         assertTrue(items.get(0).isSelected());
@@ -190,7 +190,7 @@ public class ScheduleParserTest {
                 "13.30-14.30 лёд ст, мл\n" +
                 "14.45-15.45 раст ст\n";
 
-        List<ScheduleItem> items = parser.parse(input);
+        List<ScheduleItem> items = parser.parse(input,false,12);
 
         assertEquals("Раст мл", items.get(0).getSelectedLesson());
         assertFalse(items.get(0).isSelected());
