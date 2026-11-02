@@ -131,6 +131,22 @@ public class ScheduleParserTest {
     }
 
     @Test
+    public void testLongMinus() {
+        String input = "Расписание 2.11-8.11:\n" +
+                "Пн 13.45-14.30 лед мл\n" +
+                "      15.45–16.45 лед ст\n";
+
+        List<ScheduleItem> items = parser.parse(input,false,12);
+
+        assertEquals("Лёд мл", items.get(0).getSelectedLesson());
+        assertFalse(items.get(0).isSelected());
+        assertEquals("Лёд ст", items.get(1).getSelectedLesson());
+        assertTrue(items.get(1).isSelected());
+        assertEquals("15:45 - 16:45", items.get(1).getTimeRange());
+
+    }
+
+    @Test
     public void testDefaultSelection() {
         String input = "Расписание 27.04-03.05:\n" +
                 "Пн 8.15-9.15 лёд\n" +           // будний день до 12 → false

@@ -21,10 +21,10 @@ public class ScheduleParser {
 
         Pattern[] patterns = {
                 // 01.07-03.07
-                Pattern.compile("(\\d{1,2})\\.(\\d{1,2})-(\\d{1,2})\\.(\\d{1,2})"),
+                Pattern.compile("(\\d{1,2})\\.(\\d{1,2})[-–—](\\d{1,2})\\.(\\d{1,2})"),
 
                 // 6-10 июля
-                Pattern.compile("(\\d{1,2})-(\\d{1,2})\\s+([а-яА-ЯёЁ]+)"),
+                Pattern.compile("(\\d{1,2})[-–—](\\d{1,2})\\s+([а-яА-ЯёЁ]+)"),
 
                 // с 1 по 3 июля
                 Pattern.compile("с\\s+(\\d{1,2})\\s+по\\s+(\\d{1,2})\\s+([а-яА-ЯёЁ]+)")
@@ -144,7 +144,8 @@ public class ScheduleParser {
             }
 
             // Обработка строк с занятиями
-            java.util.regex.Pattern lessonPattern = java.util.regex.Pattern.compile("^(\\d{1,2}\\.\\d{2})-(\\d{1,2}\\.\\d{2})\\s+(.+)");
+            //java.util.regex.Pattern lessonPattern = java.util.regex.Pattern.compile("^(\\d{1,2}\\.\\d{2})-(\\d{1,2}\\.\\d{2})\\s+(.+)");
+            java.util.regex.Pattern lessonPattern = java.util.regex.Pattern.compile("^(\\d{1,2}[.:]\\d{2})[-–—](\\d{1,2}[.:]\\d{2})\\s+(.+)");
             java.util.regex.Matcher lessonMatcher = lessonPattern.matcher(trimmed);
 
             if (lessonMatcher.find() && !currentDayOfWeek.isEmpty() && !isDayOff) {
