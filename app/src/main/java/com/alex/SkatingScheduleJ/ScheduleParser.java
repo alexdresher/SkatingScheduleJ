@@ -13,59 +13,20 @@ public class ScheduleParser {
         int parserAfterHour=afterHour;
         String[] lines = inputText.trim().split("\n");
 
-        // Извлекаем диапазон дат
-        // Возможные форматы:
-        // "Расписание 6-10 июля"
-        // "Расписание с 1 по 3 июля"
-        // "Расписание 01.07-03.07"
+        // Извлекаем диапазон дат из первой строки
+        DateRange range = parseDateRange(lines[0]);
 
-        Pattern[] patterns = {
-                // 01.07-03.07
-                Pattern.compile("(\\d{1,2})\\.(\\d{1,2})[-–—](\\d{1,2})\\.(\\d{1,2})"),
-
-                // 6-10 июля
-                Pattern.compile("(\\d{1,2})[-–—](\\d{1,2})\\s+([а-яА-ЯёЁ]+)"),
-
-                // с 1 по 3 июля
-                Pattern.compile("с\\s+(\\d{1,2})\\s+по\\s+(\\d{1,2})\\s+([а-яА-ЯёЁ]+)")
-        };
-
-        Matcher dateMatcher = null;
-        int matchedPattern = -1;
-
-        for (int i = 0; i < patterns.length; i++) {
-            dateMatcher = patterns[i].matcher(lines[0]);
-            if (dateMatcher.find()) {
-                matchedPattern = i;
-                break;
-            }
-        }
-
-        //Берём по умолчанию текущий понедельник
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-        int startDay = calendar.get(Calendar.DAY_OF_MONTH);
-        int startMonth = calendar.get(Calendar.MONTH) + 1; // Calendar.MONTH возвращает 0-11
-
-        // Если нашли дату — разбираем
-        if (matchedPattern != -1) {
-
-            switch (matchedPattern) {
-
-                case 0:
-                    // 01.07-03.07
-                    startDay = Integer.parseInt(dateMatcher.group(1));
-                    startMonth = Integer.parseInt(dateMatcher.group(2));
-                    break;
-
-                case 1:
-                case 2:
-                    // 6-10 июля
-                    // с 1 по 3 июля
-                    startDay = Integer.parseInt(dateMatcher.group(1));
-                    startMonth = monthToNumber(dateMatcher.group(3));
-                    break;
-            }
+        int startDay;
+        int startMonth;
+        if (range != null) {
+            startDay = range.startDay;
+            startMonth = range.startMonth;
+            } else {
+            //Берём по умолчанию текущий понедельник
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+            startDay = calendar.get(Calendar.DAY_OF_MONTH);
+            startMonth = calendar.get(Calendar.MONTH) + 1; // Calendar.MONTH возвращает 0-11
         }
 
         Map<String, Integer> dayOfWeekMap = new HashMap<>();
@@ -159,6 +120,98 @@ public class ScheduleParser {
         }
 
         return items;
+    }
+
+    /**
+     * Диапазон дат из заголовка расписания.
+     */
+    public static final class DateRange {
+        public final int startDay;
+        public final int startMonth;
+        public final int endDay;
+        public final int endMonth;
+
+        public DateRange(int startDay, int startMonth, int endDay, int endMonth) {
+            this.startDay = startDay;
+            this.startMonth = startMonth;
+            this.endDay = endDay;
+            this.endMonth = endMonth;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof DateRange)) return false;
+            DateRange r = (DateRange) o;
+            return startDay == r.startDay && startMonth == r.startMonth
+                    && endDay == r.endDay && endMonth == r.endMonth;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(startDay, startMonth, endDay, endMonth);
+        }
+
+        @Override
+        public String toString() {
+            return startDay + "." + startMonth + "-" + endDay + "." + endMonth;
+        }
+    }
+
+    // Возможные форматы первой строки:
+    // "Расписание 01.07-03.07"
+    // "Расписание 23-29.11"
+    // "Расписание 6-10 июля"
+    // "Расписание с 1 по 3 июля"
+    private static final Pattern[] DATE_PATTERNS = {
+            // 01.07-03.07
+            Pattern.compile("(\\d{1,2})\\.(\\d{1,2})[-–—](\\d{1,2})\\.(\\d{1,2})"),
+            // 23-29.11 (месяц только у второй даты)
+            Pattern.compile("(\\d{1,2})[-–—](\\d{1,2})\\.(\\d{1,2})"),
+            // 6-10 июля
+            Pattern.compile("(\\d{1,2})[-–—](\\d{1,2})\\s([а-яА-ЯёЁ])"),
+            // с 1 по 3 июля
+            Pattern.compile("с\\s(\\d{1,2})\\sпо\\s(\\d{1,2})\\s([а-яА-ЯёЁ])")
+    };
+
+    /**
+     * Разбирает строку-заголовок с диапазоном дат.
+     *
+     * @return диапазон или null, если дата в строке не найдена
+     * (тогда parse() берёт текущий понедельник)
+     */
+    DateRange parseDateRange(String headerLine) {
+        if (headerLine == null) return null;
+
+        for (int i = 0; i < DATE_PATTERNS.length; i++) {
+            Matcher m = DATE_PATTERNS[i].matcher(headerLine);
+            if (!m.find()) continue;
+
+            if (i == 0) {
+                // 01.07-03.07
+                return new DateRange(
+                        Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2)),
+                        Integer.parseInt(m.group(3)), Integer.parseInt(m.group(4)));
+            }
+            if (i == 1) {
+                // 23-29.11; если день начала больше дня конца (28-4.12),
+                // значит неделя начинается в предыдущем месяце
+                int startDay = Integer.parseInt(m.group(1));
+                int endDay = Integer.parseInt(m.group(2));
+                int endMonth = Integer.parseInt(m.group(3));
+                int startMonth = endMonth;
+                if (startDay > endDay) {
+                    startMonth = endMonth == 1 ? 12 : endMonth - 1;
+                }
+                return new DateRange(startDay, startMonth, endDay, endMonth);
+            }
+            // 6-10 июля / с 1 по 3 июля
+            int month = monthToNumber(m.group(3));
+            return new DateRange(
+                    Integer.parseInt(m.group(1)), month,
+                    Integer.parseInt(m.group(2)), month);
+        }
+        return null;
     }
 
     private int monthToNumber(String month) {

@@ -217,4 +217,10 @@ public class ScheduleParserTest {
         assertEquals("Раст ст", items.get(3).getSelectedLesson());
         assertTrue(items.get(3).isSelected());
     }
+
+    @Test
+    public void testDayRangeWithMonthAtEnd() {
+        assertEquals(new ScheduleParser.DateRange(23, 11, 29, 11),
+                parser.parseDateRange("Расписание 23-29.11:"));
+    }
 }
